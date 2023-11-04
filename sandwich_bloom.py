@@ -1,4 +1,3 @@
-import math
 from bitarray import bitarray
 from sklearn.utils import murmurhash3_32
 import random
@@ -13,7 +12,7 @@ def hashfunc(m):
         # Return function
         return hashf
 
-class Bloom_Filter():
+class Learned_Bloom():
         # Initialize the sandwitched bloom filter with r, n, k on first level
         # Internal model model, and
         # r2, n2, k2 on second layer
@@ -38,7 +37,7 @@ class Bloom_Filter():
                 for hash in self.hashes:
                         self.bits[hash(key)] = 1
                 # Set all k2 bits if it is declared false by model
-                if (self.model(key).round() == 0):
+                if (self.model.classify(key) == 0):
                     for hash in self.hashes2:
                             self.bits2[hash(key)] = 1
         
@@ -50,7 +49,7 @@ class Bloom_Filter():
                 # If included, further check the model
                 if included:
                     # If model confirms, return true
-                    if (self.model(key).round() == 1):
+                    if (self.model.classify(key) == 1):
                            return True
                     # Otherwise, check backup filter
                     included = True

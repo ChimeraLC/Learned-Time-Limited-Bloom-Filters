@@ -1,0 +1,7 @@
+{
+    "learning_rate": 0.0005,
+    "train_epochs": 10,
+    "batch_size": 64,
+    "hidden_dim": 128,
+    "lstm_layers": 2
+}
