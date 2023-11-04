@@ -8,6 +8,8 @@ import pandas as pd
 
 from runner import Runner
 from sandwich_bloom import Learned_Bloom
+from sandwich_time_bloom import Learned_AP_Bloom
+from time_bloom import AP_Bloom
 
 # Parse the arguments
 def get_args():
@@ -55,38 +57,82 @@ if __name__ == "__main__":
     # Train/Load model based on username dataset
     runner = run(args)
 
-    # Create learned bloom filter (currently using unoptimized parameters)
-    b_filter = Learned_Bloom(8196, 4, 512, 2, runner)
+    # Create default and learned age partitioned bloom filters
+    ap_filter = AP_Bloom(3, 2, 100)
+    l_ap_filter = Learned_AP_Bloom(3, 2, 100, runner)
 
     # Get 2000 usernames not used during training
     data = pd.read_csv("data\player-stats.csv")
     incl_names = data['username'][300000:302000].values
-    # Insert usernames into filter
-    for name in incl_names:
-        b_filter.insert(name)
+    # Insert first 300 usernames into filter
+    for name in incl_names[:300]:
+        ap_filter.insert(name)
+        l_ap_filter.insert(name)
 
     # Check inclusion rate
     included = 0
-    for name in incl_names:
-        if (b_filter.test(name)):
+    l_included = 0
+    for name in incl_names[:300]:
+        if (ap_filter.query(name)):
             included += 1
-    print("Out of 2000 elements,", included, "were correctly included")
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("Out of 300 elements,", included, "were correctly included in default filter")
+    print("Out of 300 elements,", l_included, "were correctly included in learned filter")
+
+    # Insert 200 more usernames
+    for name in incl_names[300:500]:
+        ap_filter.insert(name)
+        l_ap_filter.insert(name)
+
+    # Check inclusion rate
+    included = 0
+    l_included = 0
+    for name in incl_names[:200]:
+        if (ap_filter.query(name)):
+            included += 1
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("Out of the first 200 elements,", included, "were still included in default filter")
+    print("Out of the first 200 elements,", l_included, "were still included in learned filter")
+
+    # Check inclusion rate
+    included = 0
+    l_included = 0
+    for name in incl_names[200:500]:
+        if (ap_filter.query(name)):
+            included += 1
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("Out of 300 recent elements,", included, "were correctly included in default filter")
+    print("Out of 300 recent elements,", l_included, "were correctly included in learned filter")
+
 
     # Get 10000 other usernames
     excl_names = data['username'][302000:312000].values
     # Check inclusion rate
     included = 0
+    l_included = 0
     for name in excl_names:
-        if (b_filter.test(name)):
+        if (ap_filter.query(name)):
             included += 1
-    print("There is a false positive rate of", included/10000, "among common usernames")
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("There is a false positive rate of", included/10000, "among common usernames in default filter")
+    print("There is a false positive rate of", l_included/10000, "among common usernames in learned filter")
 
+    
     # Get 10000 other random strings
     alphabet = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 "
     included = 0
+    l_included = 0
     for _ in range(10000):
         length = random.randint(5, 12)
         username = "".join(random.choices(alphabet, k = length))
-        if (b_filter.test(username)):
+        if (ap_filter.query(username)):
             included += 1
-    print("There is a false positive rate of", included/10000, "among random usernames")
+        if (l_ap_filter.query(username)):
+            l_included += 1
+    print("There is a false positive rate of", included/10000, "among random usernames in default filter")
+    print("There is a false positive rate of", l_included/10000, "among random usernames in learned filter")
+
