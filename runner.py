@@ -143,3 +143,12 @@ class Runner:
                 predictions += list(y_pred.detach().numpy())
         return predictions
 
+
+    # Returns the overall size of the model
+    def get_size(self):
+        size = 0
+        for param in self.model.parameters():
+            size += param.nelement() * param.element_size()
+        for buffer in self.model.buffers():
+            size += buffer.nelemnt() * buffer.elemnt_size()
+        return size

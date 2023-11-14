@@ -136,3 +136,5 @@ if __name__ == "__main__":
     print("There is a false positive rate of", included/10000, "among random usernames in default filter")
     print("There is a false positive rate of", l_included/10000, "among random usernames in learned filter")
 
+    print("The default filter has size", ap_filter.get_size())
+    print("The learned filter has size", l_ap_filter.get_size())

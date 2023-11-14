@@ -86,3 +86,7 @@ class AP_Bloom():
             i -= 1
         # Match was not found
         return False
+    
+    # Returns the overall size of the filer
+    def get_size(self):
+        return len(self.bits) // 8
