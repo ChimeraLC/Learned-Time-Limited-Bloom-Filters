@@ -48,6 +48,80 @@ def run(args):
     runner.train()
     return runner
 
+def test(runner, real_percent, size):
+    print("Running test with real percentage of:", real_percent)
+
+    ap_filter = AP_Bloom(3, 2, size)
+    l_ap_filter = Learned_AP_Bloom(3, 2, size, runner)
+    # Calculate size of each type
+    real_size = int(real_percent * size * 10)
+    unreal_size = 10 * size - real_size
+    real_data = pd.read_csv("data\player-stats.csv") # Realistic names
+    unreal_data = pd.read_csv("data/false-names.csv") # Unrealistic names
+    incl_names = np.concatenate((real_data['username'][20000:20000 + real_size].values,
+                            unreal_data['username'][20000:20000 + real_size].values))
+    # Shuffle names
+    np.random.shuffle(incl_names)
+    # Insert first few usernames into filter
+    for name in incl_names[:3 * size]:
+        ap_filter.insert(name)
+        l_ap_filter.insert(name)
+
+    # Check inclusion rate
+    included = 0
+    l_included = 0
+    for name in incl_names[:3 * size]:
+        if (ap_filter.query(name)):
+            included += 1
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("Out of", 3 * size, "elements,", included, "were correctly included in default filter")
+    print("Out of", 3 * size, "elements,", l_included, "were correctly included in learned filter")
+
+    # Insert more usernames
+    for name in incl_names[3 * size:5 * size]:
+        ap_filter.insert(name)
+        l_ap_filter.insert(name)
+
+    # Check inclusion rate
+    included = 0
+    l_included = 0
+    for name in incl_names[:2 * size]:
+        if (ap_filter.query(name)):
+            included += 1
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("Out of the first", 2 * size, "elements,", included, "were still included in default filter")
+    print("Out of the first", 2 * size, "elements,", l_included, "were still included in learned filter")
+
+    # Check inclusion rate
+    included = 0
+    l_included = 0
+    for name in incl_names[2 * size: 5 * size]:
+        if (ap_filter.query(name)):
+            included += 1
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("Out of", 3 * size, "recent elements,", included, "were correctly included in default filter")
+    print("Out of", 3 * size, "recent elements,", l_included, "were correctly included in learned filter")
+
+
+    # Get other usernames
+    excl_names = incl_names[5 * size:]
+    # Check inclusion rate
+    included = 0
+    l_included = 0
+    for name in excl_names:
+        if (ap_filter.query(name)):
+            included += 1
+        if (l_ap_filter.query(name)):
+            l_included += 1
+    print("There is a false positive rate of", included/len(excl_names), "among common usernames in default filter")
+    print("There is a false positive rate of", l_included/len(excl_names), "among common usernames in learned filter")
+
+    print("The default filter has size", ap_filter.get_size())
+    print("The learned filter has size", l_ap_filter.get_size())
+
 if __name__ == "__main__":
     args = get_args()
 
@@ -57,84 +131,6 @@ if __name__ == "__main__":
     # Train/Load model based on username dataset
     runner = run(args)
 
-    # Create default and learned age partitioned bloom filters
-    ap_filter = AP_Bloom(3, 2, 100)
-    l_ap_filter = Learned_AP_Bloom(3, 2, 100, runner)
-
-    # Get 2000 usernames not used during training
-    data = pd.read_csv("data\player-stats.csv")
-    incl_names = data['username'][300000:302000].values
-    # Insert first 300 usernames into filter
-    for name in incl_names[:300]:
-        ap_filter.insert(name)
-        l_ap_filter.insert(name)
-
-    # Check inclusion rate
-    included = 0
-    l_included = 0
-    for name in incl_names[:300]:
-        if (ap_filter.query(name)):
-            included += 1
-        if (l_ap_filter.query(name)):
-            l_included += 1
-    print("Out of 300 elements,", included, "were correctly included in default filter")
-    print("Out of 300 elements,", l_included, "were correctly included in learned filter")
-
-    # Insert 200 more usernames
-    for name in incl_names[300:500]:
-        ap_filter.insert(name)
-        l_ap_filter.insert(name)
-
-    # Check inclusion rate
-    included = 0
-    l_included = 0
-    for name in incl_names[:200]:
-        if (ap_filter.query(name)):
-            included += 1
-        if (l_ap_filter.query(name)):
-            l_included += 1
-    print("Out of the first 200 elements,", included, "were still included in default filter")
-    print("Out of the first 200 elements,", l_included, "were still included in learned filter")
-
-    # Check inclusion rate
-    included = 0
-    l_included = 0
-    for name in incl_names[200:500]:
-        if (ap_filter.query(name)):
-            included += 1
-        if (l_ap_filter.query(name)):
-            l_included += 1
-    print("Out of 300 recent elements,", included, "were correctly included in default filter")
-    print("Out of 300 recent elements,", l_included, "were correctly included in learned filter")
-
-
-    # Get 10000 other usernames
-    excl_names = data['username'][302000:312000].values
-    # Check inclusion rate
-    included = 0
-    l_included = 0
-    for name in excl_names:
-        if (ap_filter.query(name)):
-            included += 1
-        if (l_ap_filter.query(name)):
-            l_included += 1
-    print("There is a false positive rate of", included/10000, "among common usernames in default filter")
-    print("There is a false positive rate of", l_included/10000, "among common usernames in learned filter")
-
-    
-    # Get 10000 other random strings
-    alphabet = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 "
-    included = 0
-    l_included = 0
-    for _ in range(10000):
-        length = random.randint(5, 12)
-        username = "".join(random.choices(alphabet, k = length))
-        if (ap_filter.query(username)):
-            included += 1
-        if (l_ap_filter.query(username)):
-            l_included += 1
-    print("There is a false positive rate of", included/10000, "among random usernames in default filter")
-    print("There is a false positive rate of", l_included/10000, "among random usernames in learned filter")
-
-    print("The default filter has size", ap_filter.get_size())
-    print("The learned filter has size", l_ap_filter.get_size())
+    # Run a few different percentages
+    for percentage in [0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+        test(runner, percentage, 100)
