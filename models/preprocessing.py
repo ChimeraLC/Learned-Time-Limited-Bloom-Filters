@@ -8,8 +8,8 @@ from sklearn.model_selection import train_test_split
 # Preprocessing to convert username data to vectors
 class Preprocessing:
 	def __init__(self, args):
-		self.valid_path = args.valid_data_path
-		self.invalid_path = args.invalid_data_path
+		self.common_path = args.common_data_path
+		self.uncommon_path = args.uncommon_data_path
 		self.max_len = args.max_len	# Max length of each username
 		self.test_percentage = args.train_ratio
 		self.data_length = args.data_length
@@ -18,24 +18,24 @@ class Preprocessing:
 
 	def load_data(self):
 		# Get all player data
-		self.validData = pd.read_csv(self.valid_path)
-		self.validData.drop(['rank','total','attack','defence','strength','hitpoints',
+		self.commonData = pd.read_csv(self.common_path)
+		self.commonData.drop(['rank','total','attack','defence','strength','hitpoints',
 				  'ranged','prayer','magic','cooking','woodcutting','fletching',
 				  'fishing','firemaking','crafting','smithing','mining','herblore',
 				  'agility','thieving','slayer','farming','runecraft','hunter',
 				  'construction'], axis=1, inplace=True)
 		
 		# Get false usernames
-		self.invalidData = pd.read_csv(self.invalid_path)
+		self.uncommonData = pd.read_csv(self.uncommon_path)
 		
 		# Get username data
-		xValid = self.validData['username'][:self.data_length]
-		xInvalid = self.invalidData['username'][:self.data_length]
+		xCommon = self.commonData['username'][:self.data_length]
+		xUncommon = self.uncommonData['username'][:self.data_length]
 
 		# Combining datasets
-		X = np.append(xValid, xInvalid)
-		# 0 represents invalid username, while 1 represents valid
-		Y = pd.DataFrame(data = [1 for i in range(len(xValid))] + [0 for i in range(len(xInvalid))], dtype = np.float32)
+		X = np.append(xCommon, xUncommon)
+		# 0 represents uncommon username, while 1 represents common
+		Y = pd.DataFrame(data = [1 for i in range(len(xCommon))] + [0 for i in range(len(xUncommon))], dtype = np.float32)
 		
 
 		# Get training and testing sets

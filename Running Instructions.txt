@@ -1,0 +1,20 @@
+To run the experiments generate the plots, run main.py.
+
+The hyperparameters of the binary classification model can be changed in args.json,
+and the model can either be "lstm" or "linear" for either type of model. It will
+train a new model the first time, but is a saved model exists, it will load it
+instead.
+
+To generate the false username data if it is missing, run gen_false_usernames.py.
+The full player data is included in data/player-stats.csv, and an abreviated version
+is included in data/player-stats-abriv.csv, which can be replacted in the parameters
+if necessary.
+
+Parameters for the experiments can be passed through the command line, but can also be
+set in the get_args() function in main, where the filter_generations (k, l), 
+filter_generation_sizes (g), filter_fps (aimed fps) and usuals_proportion
+(proportion of usernames that come from the 'common' dataset) can be set. By default,
+they are the parameters used in the report.
+
+main.py will then run all the corresponding experiments, outputting the results
+to the console and additionally generating and displaying the plots at the end.

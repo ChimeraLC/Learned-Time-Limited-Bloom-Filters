@@ -8,10 +8,10 @@ filename = 'data/false-names.csv'
 # Just the field of usernames
 fields = ['username']
 
-# Generate 10000 false names
+# Generate 100000 false names
 rows = []
 alphabet = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 "
-for _ in range(100000):
+for _ in range(1000000):
     # Random length between 5 and 12
     length = random.randint(5, 12)
 

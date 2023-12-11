@@ -6,8 +6,9 @@ import random
 """
 Default age partitioned bloom filter
 g: The number of elements contained in each generation
-l: The number of generations each element will be stored for
-k: Parameter mainly used to control fp rate
+l: The number of guarenteed generations (no false negatives)
+k: The number of transitory generations (possible false negatives, older)
+fp: Aimed for fp rate
 """
 class AP_Bloom():
     # Initialize bloom filter

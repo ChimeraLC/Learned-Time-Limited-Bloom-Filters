@@ -6,8 +6,9 @@ import random
 """
 Default age partitioned bloom filter
 g: The number of elements contained in each generation
-l: The number of generations each element will be stored for
-k: Parameter mainly used to control fp rate
+l: The number of guarenteed generations (no false negatives, more recent)
+k: The number of transitory generations (possible false negatives, older)
+fp: Aimed for fp rate
 model: Binary classification model for if given element is 'likely' to be included
 """
 class Learned_AP_Bloom():
@@ -107,16 +108,16 @@ class Learned_AP_Bloom():
                     i -= 1
                     matching -= 1
                     continue
-            else:
+            else: # Otherwise, reset consecutive count
                 backup_matching == 0
-                matching = 0 # Otherwise, reset consecutive count
+                matching = 0 
             i -= 1
         return False
     
     
-    # Returns the overall size of the filter
+    # Returns the overall size of the filter alongside the size of the model
     def get_size(self):
-        return (len(self.bits) + len(self.bits2))// 8 + self.model.get_size()
+        return (len(self.bits) + len(self.bits2))// 8,  self.model.get_size()
     
     # Returns how 'full' the filters are
     def get_usage(self):

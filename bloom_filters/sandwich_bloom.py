@@ -12,6 +12,9 @@ def hashfunc(m):
         # Return function
         return hashf
 
+"""
+Initial implementation of a binary classification model within a bloom filter (UNUSED)
+"""
 class Learned_Bloom():
         # Initialize the sandwitched bloom filter with r, n, k on first level
         # Internal model model, and
